@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Save, Shield } from "lucide-react";
+import { ArrowLeft, Truck, Shield, CheckCircle, Camera, AlertTriangle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,192 +18,149 @@ const Register = () => {
     placa: "",
     tipo: "",
     local: "",
-    data: "",
-    descricao: "",
-    valor: ""
+    operador: "Operador Manual",
+    observacoes: ""
   });
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simula envio para API
-    try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+    if (!formData.placa || !formData.tipo || !formData.local) {
       toast({
-        title: "Evento registrado com sucesso!",
-        description: "O evento foi registrado e está sendo processado na blockchain.",
+        title: "Campos obrigatórios",
+        description: "Preencha placa, tipo e local.",
+        variant: "destructive",
       });
-
-      // Redireciona para o dashboard
-      navigate("/dashboard");
-    } catch (error) {
-      toast({
-        title: "Erro ao registrar evento",
-        description: "Ocorreu um erro. Tente novamente.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
+      return;
     }
+
+    setIsSubmitting(true);
+    setTimeout(() => {
+      const mockHash = "0x" + Math.random().toString(16).substr(2, 64);
+      toast({
+        title: "Evento registrado!",
+        description: `Caminhão ${formData.placa} registrado. Hash: ${mockHash.slice(0, 20)}...`,
+      });
+      navigate("/dashboard");
+    }, 2000);
   };
 
-  const isFormValid = formData.placa && formData.tipo && formData.local && formData.data;
+  const locaisPorto = [
+    "Portão Principal", "Pátio A - Triagem", "Pátio B - Granéis", 
+    "Terminal 1 - Contêineres", "Terminal 2 - Carga Geral", "Terminal 3 - Contêineres",
+    "Portão de Saída Norte", "Portão de Saída Sul"
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card/50 backdrop-blur-sm">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      <header className="border-b bg-card/50 backdrop-blur-sm">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => navigate("/dashboard")}
-              className="hover:bg-primary/10"
-            >
+            <Button variant="ghost" onClick={() => navigate("/dashboard")}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
+              Voltar ao Dashboard
             </Button>
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                Registrar Novo Evento
-              </h1>
-              <p className="text-muted-foreground">Adicione um novo evento ao sistema</p>
+              <h1 className="text-2xl font-bold">Registro Manual - Porto de Suape</h1>
+              <p className="text-muted-foreground">Sistema de Monitoramento</p>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-2xl mx-auto">
-          <Card className="shadow-lg border-0 bg-gradient-to-br from-card to-card/80">
+          <Card className="border border-warning/20 bg-warning/5 mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-warning mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-warning">Registro Manual</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Use apenas quando sistemas automáticos (OCR/TAG) não funcionarem.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-xl">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Informações do Evento
+                <Truck className="w-6 h-6 text-primary" />
+                Evento de Movimentação
               </CardTitle>
+              <CardDescription>
+                Registre entrada/saída de caminhão no Porto de Suape
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Placa */}
-                <div className="space-y-2">
-                  <Label htmlFor="placa">Placa do Veículo *</Label>
+                <div>
+                  <Label>Placa do Caminhão *</Label>
                   <Input
-                    id="placa"
-                    placeholder="Ex: ABC-1234"
+                    placeholder="ABC-1234"
                     value={formData.placa}
-                    onChange={(e) => handleInputChange("placa", e.target.value.toUpperCase())}
-                    className="font-mono"
+                    onChange={(e) => setFormData(prev => ({ ...prev, placa: e.target.value.toUpperCase() }))}
+                    className="font-mono text-lg"
                     maxLength={8}
                     required
                   />
                 </div>
 
-                {/* Tipo */}
-                <div className="space-y-2">
-                  <Label htmlFor="tipo">Tipo de Evento *</Label>
-                  <Select value={formData.tipo} onValueChange={(value) => handleInputChange("tipo", value)}>
+                <div>
+                  <Label>Tipo de Movimento *</Label>
+                  <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value }))}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de evento" />
+                      <SelectValue placeholder="Selecione o movimento" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="multa">Multa</SelectItem>
-                      <SelectItem value="licenciamento">Licenciamento</SelectItem>
-                      <SelectItem value="vistoria">Vistoria</SelectItem>
-                      <SelectItem value="transferencia">Transferência</SelectItem>
-                      <SelectItem value="seguro">Seguro</SelectItem>
+                      <SelectItem value="entrada">Entrada</SelectItem>
+                      <SelectItem value="saida">Saída</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Data e Local - Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="data">Data do Evento *</Label>
-                    <Input
-                      id="data"
-                      type="date"
-                      value={formData.data}
-                      onChange={(e) => handleInputChange("data", e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="valor">Valor (opcional)</Label>
-                    <Input
-                      id="valor"
-                      type="number"
-                      placeholder="R$ 0,00"
-                      value={formData.valor}
-                      onChange={(e) => handleInputChange("valor", e.target.value)}
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
+                <div>
+                  <Label>Local no Porto *</Label>
+                  <Select value={formData.local} onValueChange={(value) => setFormData(prev => ({ ...prev, local: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o local" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locaisPorto.map((local) => (
+                        <SelectItem key={local} value={local}>{local}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {/* Local */}
-                <div className="space-y-2">
-                  <Label htmlFor="local">Local *</Label>
-                  <Input
-                    id="local"
-                    placeholder="Ex: São Paulo - SP"
-                    value={formData.local}
-                    onChange={(e) => handleInputChange("local", e.target.value)}
-                    required
-                  />
-                </div>
-
-                {/* Descrição */}
-                <div className="space-y-2">
-                  <Label htmlFor="descricao">Descrição (opcional)</Label>
+                <div>
+                  <Label>Observações</Label>
                   <Textarea
-                    id="descricao"
-                    placeholder="Detalhes adicionais sobre o evento..."
-                    value={formData.descricao}
-                    onChange={(e) => handleInputChange("descricao", e.target.value)}
-                    rows={4}
+                    placeholder="Motivo do registro manual, problemas identificados..."
+                    value={formData.observacoes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
+                    rows={3}
                   />
                 </div>
 
-                {/* Informação sobre Blockchain */}
                 <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <Shield className="w-5 h-5 text-primary mt-0.5" />
                     <div>
-                      <h3 className="font-medium text-primary mb-1">Verificação Blockchain</h3>
+                      <h4 className="font-medium text-primary">Garantia de Integridade</h4>
                       <p className="text-sm text-muted-foreground">
-                        Após o registro, o evento será processado e seu hash será verificado na blockchain para garantir autenticidade e imutabilidade dos dados.
+                        Evento registrado com hash SHA256 e armazenado na blockchain para auditabilidade.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Botões */}
-                <div className="flex gap-4 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => navigate("/dashboard")}
-                    className="flex-1"
-                    disabled={isSubmitting}
-                  >
+                <div className="flex gap-4">
+                  <Button type="button" variant="outline" onClick={() => navigate("/dashboard")} className="flex-1">
                     Cancelar
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={!isFormValid || isSubmitting}
-                    className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:shadow-lg"
-                  >
+                  <Button type="submit" disabled={isSubmitting} className="flex-1">
                     {isSubmitting ? (
                       <>
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
@@ -211,7 +168,7 @@ const Register = () => {
                       </>
                     ) : (
                       <>
-                        <Save className="w-4 h-4 mr-2" />
+                        <CheckCircle className="w-4 h-4 mr-2" />
                         Registrar Evento
                       </>
                     )}
